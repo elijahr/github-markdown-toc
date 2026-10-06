@@ -54,48 +54,48 @@ load test_helper
     assert_equal "${lines[17]}" "<!-- Created by https://github.com/ekalinin/github-markdown-toc -->"
 
 }
-# @test "TOC for remote README.md" {
-#     run $BATS_TEST_DIRNAME/../gh-md-toc https://github.com/ekalinin/sitemap.js/blob/6bc3eb12c898c1037a35a11b2eb24ababdeb3580/README.md
-#     assert_success
-#
-#     assert_equal "${lines[0]}"  "Table of Contents"
-#     assert_equal "${lines[1]}"  "================="
-#     assert_equal "${lines[2]}"  "* [sitemap.js](#sitemapjs)"
-#     assert_equal "${lines[3]}"  "   * [Installation](#installation)"
-#     assert_equal "${lines[4]}"  "   * [Usage](#usage)"
-#     assert_equal "${lines[5]}"  "   * [License](#license)"
-#     assert_equal "${lines[6]}"  "<!-- Created by https://github.com/ekalinin/github-markdown-toc -->"
-# }
+@test "TOC for remote README.md" {
+    run $BATS_TEST_DIRNAME/../gh-md-toc https://github.com/ekalinin/sitemap.js/blob/6bc3eb12c898c1037a35a11b2eb24ababdeb3580/README.md
+    assert_success
 
-# @test "TOC for mixed README.md (remote/local)" {
-#     run $BATS_TEST_DIRNAME/../gh-md-toc \
-#         README.md \
-#         https://github.com/ekalinin/sitemap.js/blob/6bc3eb12c898c1037a35a11b2eb24ababdeb3580/README.md
-#     assert_success
-#
-#     assert_equal "${lines[0]}"   "* [gh-md-toc](README.md#gh-md-toc)"
-#     assert_equal "${lines[1]}"   "* [Table of contents](README.md#table-of-contents)"
-#     assert_equal "${lines[2]}"   "* [Installation](README.md#installation)"
-#     assert_equal "${lines[3]}"   "* [Usage](README.md#usage)"
-#     assert_equal "${lines[4]}"   "   * [STDIN](README.md#stdin)"
-#     assert_equal "${lines[5]}"   "   * [Local files](README.md#local-files)"
-#     assert_equal "${lines[6]}"   "   * [Remote files](README.md#remote-files)"
-#     assert_equal "${lines[7]}"   "   * [Multiple files](README.md#multiple-files)"
-#     assert_equal "${lines[8]}"   "   * [Combo](README.md#combo)"
-#     assert_equal "${lines[9]}"   "   * [Auto insert and update TOC](README.md#auto-insert-and-update-toc)"
-#     assert_equal "${lines[10]}"  "   * [GitHub token](README.md#github-token)"
-#     assert_equal "${lines[11]}"  "   * [TOC generation with Github Actions](README.md#toc-generation-with-github-actions)"
-#     assert_equal "${lines[12]}"  "* [Tests](README.md#tests)"
-#     assert_equal "${lines[13]}"  "* [Dependency](README.md#dependency)"
-#     assert_equal "${lines[14]}"  "* [Docker](README.md#docker)"
-#     assert_equal "${lines[15]}" "   * [Local](README.md#local)"
-#     assert_equal "${lines[16]}" "   * [Public](README.md#public)"
-#     assert_equal "${lines[17]}"  "* [sitemap.js](https://github.com/ekalinin/sitemap.js/blob/6bc3eb12c898c1037a35a11b2eb24ababdeb3580/README.md#sitemapjs)"
-#     assert_equal "${lines[18]}"  "   * [Installation](https://github.com/ekalinin/sitemap.js/blob/6bc3eb12c898c1037a35a11b2eb24ababdeb3580/README.md#installation)"
-#     assert_equal "${lines[19]}"  "   * [Usage](https://github.com/ekalinin/sitemap.js/blob/6bc3eb12c898c1037a35a11b2eb24ababdeb3580/README.md#usage)"
-#     assert_equal "${lines[20]}"  "   * [License](https://github.com/ekalinin/sitemap.js/blob/6bc3eb12c898c1037a35a11b2eb24ababdeb3580/README.md#license)"
-#     assert_equal "${lines[21]}"  "<!-- Created by https://github.com/ekalinin/github-markdown-toc -->"
-# }
+    assert_equal "${lines[0]}"  "Table of Contents"
+    assert_equal "${lines[1]}"  "================="
+    assert_equal "${lines[2]}"  "* [sitemap.js](#sitemapjs)"
+    assert_equal "${lines[3]}"  "   * [Installation](#installation)"
+    assert_equal "${lines[4]}"  "   * [Usage](#usage)"
+    assert_equal "${lines[5]}"  "   * [License](#license)"
+    assert_equal "${lines[6]}"  "<!-- Created by https://github.com/ekalinin/github-markdown-toc -->"
+}
+
+@test "TOC for mixed README.md (remote/local)" {
+    run $BATS_TEST_DIRNAME/../gh-md-toc \
+        README.md \
+        https://github.com/ekalinin/sitemap.js/blob/6bc3eb12c898c1037a35a11b2eb24ababdeb3580/README.md
+    assert_success
+
+    assert_equal "${lines[0]}"   "* [gh-md-toc](README.md#gh-md-toc)"
+    assert_equal "${lines[1]}"   "* [Table of contents](README.md#table-of-contents)"
+    assert_equal "${lines[2]}"   "* [Installation](README.md#installation)"
+    assert_equal "${lines[3]}"   "* [Usage](README.md#usage)"
+    assert_equal "${lines[4]}"   "   * [STDIN](README.md#stdin)"
+    assert_equal "${lines[5]}"   "   * [Local files](README.md#local-files)"
+    assert_equal "${lines[6]}"   "   * [Remote files](README.md#remote-files)"
+    assert_equal "${lines[7]}"   "   * [Multiple files](README.md#multiple-files)"
+    assert_equal "${lines[8]}"   "   * [Combo](README.md#combo)"
+    assert_equal "${lines[9]}"   "   * [Auto insert and update TOC](README.md#auto-insert-and-update-toc)"
+    assert_equal "${lines[10]}"  "   * [GitHub token](README.md#github-token)"
+    assert_equal "${lines[11]}"  "   * [TOC generation with Github Actions](README.md#toc-generation-with-github-actions)"
+    assert_equal "${lines[12]}"  "* [Tests](README.md#tests)"
+    assert_equal "${lines[13]}"  "* [Dependency](README.md#dependency)"
+    assert_equal "${lines[14]}"  "* [Docker](README.md#docker)"
+    assert_equal "${lines[15]}" "   * [Local](README.md#local)"
+    assert_equal "${lines[16]}" "   * [Public](README.md#public)"
+    assert_equal "${lines[17]}"  "* [sitemap.js](https://github.com/ekalinin/sitemap.js/blob/6bc3eb12c898c1037a35a11b2eb24ababdeb3580/README.md#sitemapjs)"
+    assert_equal "${lines[18]}"  "   * [Installation](https://github.com/ekalinin/sitemap.js/blob/6bc3eb12c898c1037a35a11b2eb24ababdeb3580/README.md#installation)"
+    assert_equal "${lines[19]}"  "   * [Usage](https://github.com/ekalinin/sitemap.js/blob/6bc3eb12c898c1037a35a11b2eb24ababdeb3580/README.md#usage)"
+    assert_equal "${lines[20]}"  "   * [License](https://github.com/ekalinin/sitemap.js/blob/6bc3eb12c898c1037a35a11b2eb24ababdeb3580/README.md#license)"
+    assert_equal "${lines[21]}"  "<!-- Created by https://github.com/ekalinin/github-markdown-toc -->"
+}
 
 @test "TOC for markdown from stdin" {
     cat README.md | {
@@ -126,11 +126,13 @@ test_help() {
     assert_equal "${lines[5]}"  "  gh-md-toc --version             Show version"
     assert_equal "${lines[6]}"  "Options:"
     assert_equal "${lines[7]}"  "  --indent <NUM>      Set indent size. Default: 3."
-    assert_equal "${lines[8]}"  "  --insert            Insert new TOC into original file. For local files only. Default: false."
-    assert_equal "${lines[10]}" "  --no-backup         Remove backup file. Set --insert as well. Default: false."
-    assert_equal "${lines[11]}" "  --hide-footer       Do not write date & author of the last TOC update. Set --insert as well. Default: false."
-    assert_equal "${lines[12]}" "  --skip-header       Hide entry of the topmost headlines. Default: false."
-    assert_equal "${#lines[@]}"  "14"
+    assert_equal "${lines[8]}"  "  --depth <NUM>       Max heading level to include into TOC. Default: 0 (all levels)."
+    assert_equal "${lines[9]}"  "  --numbered <TYPE>   Number TOC entries: list (ordered list) or outline (1.1. in text). Default: none."
+    assert_equal "${lines[10]}" "  --insert            Insert new TOC into original file. For local files only. Default: false."
+    assert_equal "${lines[12]}" "  --no-backup         Remove backup file. Set --insert as well. Default: false."
+    assert_equal "${lines[13]}" "  --hide-footer       Do not write date & author of the last TOC update. Set --insert as well. Default: false."
+    assert_equal "${lines[14]}" "  --skip-header       Hide entry of the topmost headlines. Default: false."
+    assert_equal "${#lines[@]}"  "16"
 }
 
 @test "--help" {
@@ -163,36 +165,36 @@ test_help() {
     assert_equal "${lines[5]}"   "   * [日常使用](#日常使用)"
 }
 
-# @test "TOC for remote non-english chars (remote load), #6, #10" {
-#     run $BATS_TEST_DIRNAME/../gh-md-toc \
-#         https://github.com/ekalinin/envirius/blob/f939d3b6882bfb6ecb28ef7b6e62862f934ba945/README.ru.md
-#     assert_success
-#
-#     assert_equal "${lines[2]}"   "* [envirius](#envirius)"
-#     assert_equal "${lines[3]}"   "   * [Идея](#идея)"
-#     assert_equal "${lines[4]}"   "   * [Особенности](#особенности)"
-#     assert_equal "${lines[5]}"   "* [Установка](#установка)"
-#
-#
-#     run $BATS_TEST_DIRNAME/../gh-md-toc \
-#         https://github.com/jlevy/the-art-of-command-line/blob/217da3b4fa751014ecc122fd9fede2328a7eeb3e/README-zh.md
-#     assert_success
-#
-#     assert_equal "${lines[2]}"   "* [命令行的艺术](#命令行的艺术)"
-#     assert_equal "${lines[3]}"   "   * [必读](#必读)"
-#     assert_equal "${lines[4]}"   "   * [基础](#基础)"
-#     assert_equal "${lines[5]}"   "   * [日常使用](#日常使用)"
-#
-#
-#     run $BATS_TEST_DIRNAME/../gh-md-toc \
-#         https://github.com/jlevy/the-art-of-command-line/blob/217da3b4fa751014ecc122fd9fede2328a7eeb3e/README-pt.md
-#     assert_success
-#
-#     assert_equal "${lines[2]}"   "* [A arte da linha de comando](#a-arte-da-linha-de-comando)"
-#     assert_equal "${lines[3]}"   "   * [Meta](#meta)"
-#     assert_equal "${lines[4]}"   "   * [Básico](#básico)"
-#     assert_equal "${lines[5]}"   "   * [Uso diário](#uso-diário)"
-# }
+@test "TOC for remote non-english chars (remote load), #6, #10" {
+    run $BATS_TEST_DIRNAME/../gh-md-toc \
+        https://github.com/ekalinin/envirius/blob/f939d3b6882bfb6ecb28ef7b6e62862f934ba945/README.ru.md
+    assert_success
+
+    assert_equal "${lines[2]}"   "* [envirius](#envirius)"
+    assert_equal "${lines[3]}"   "   * [Идея](#идея)"
+    assert_equal "${lines[4]}"   "   * [Особенности](#особенности)"
+    assert_equal "${lines[5]}"   "* [Установка](#установка)"
+
+
+    run $BATS_TEST_DIRNAME/../gh-md-toc \
+        https://github.com/jlevy/the-art-of-command-line/blob/217da3b4fa751014ecc122fd9fede2328a7eeb3e/README-zh.md
+    assert_success
+
+    assert_equal "${lines[2]}"   "* [命令行的艺术](#命令行的艺术)"
+    assert_equal "${lines[3]}"   "   * [必读](#必读)"
+    assert_equal "${lines[4]}"   "   * [基础](#基础)"
+    assert_equal "${lines[5]}"   "   * [日常使用](#日常使用)"
+
+
+    run $BATS_TEST_DIRNAME/../gh-md-toc \
+        https://github.com/jlevy/the-art-of-command-line/blob/217da3b4fa751014ecc122fd9fede2328a7eeb3e/README-pt.md
+    assert_success
+
+    assert_equal "${lines[2]}"   "* [A arte da linha de comando](#a-arte-da-linha-de-comando)"
+    assert_equal "${lines[3]}"   "   * [Meta](#meta)"
+    assert_equal "${lines[4]}"   "   * [Básico](#básico)"
+    assert_equal "${lines[5]}"   "   * [Uso diário](#uso-diário)"
+}
 
 @test "TOC for text with backquote, #13" {
     run $BATS_TEST_DIRNAME/../gh-md-toc tests/test\ directory/test_backquote.md
@@ -232,4 +234,107 @@ test_help() {
     assert_equal "${lines[7]}"   "   * [This is a regression test for atx-style](#this-is-a-regression-test-for-atx-style)"
     assert_equal "${lines[8]}"   "* [Title four is a particularly long title because of wrapping](#title-four-is-a-particularly-long-title-because-of-wrapping)"
     assert_equal "${lines[9]}"   "   * [This is a test for long titles](#this-is-a-test-for-long-titles)"
+}
+
+@test "Error for local file without network access" {
+    # route curl through a closed port to simulate a network failure
+    HTTPS_PROXY=http://127.0.0.1:9 run $BATS_TEST_DIRNAME/../gh-md-toc tests/test\ directory/test_plussign.md
+    assert_fail
+
+    assert_equal "${lines[2]}"   "Parsing local markdown file requires access to github API"
+    assert_equal "${lines[3]}"   "Please make sure curl is installed and check your network connectivity"
+}
+
+@test "Error for local file with invalid GitHub token" {
+    GH_TOC_TOKEN=invalid run $BATS_TEST_DIRNAME/../gh-md-toc tests/test\ directory/test_plussign.md
+    assert_fail
+
+    assert_equal "${lines[2]}"   "Parsing local markdown file requires access to github API"
+    assert_equal "${lines[3]}"   "Error: GitHub API rejected the auth token (HTTP 401 Bad credentials)"
+    assert_equal "${lines[4]}"   "Check the GitHub auth token in the GH_TOC_TOKEN environment variable"
+}
+
+@test "TOC for local file mentioning API error messages" {
+    run $BATS_TEST_DIRNAME/../gh-md-toc tests/test\ directory/test_api_error_text.md
+    assert_success
+
+    assert_equal "${lines[2]}"   "* [Bad credentials](#bad-credentials)"
+    assert_equal "${lines[3]}"   "   * [API rate limit exceeded](#api-rate-limit-exceeded)"
+}
+
+@test "TOC with depth for local file, #25" {
+    run $BATS_TEST_DIRNAME/../gh-md-toc --depth 2 tests/test\ directory/test_depth.md
+    assert_success
+
+    assert_equal "${lines[2]}"   "* [Title one](#title-one)"
+    assert_equal "${lines[3]}"   "   * [Section](#section)"
+    assert_equal "${lines[4]}"   "* [Title two](#title-two)"
+    assert_equal "${lines[5]}"   "<!-- Created by https://github.com/ekalinin/github-markdown-toc -->"
+}
+
+@test "TOC with depth for markdown from stdin, #25" {
+    cat tests/test\ directory/test_depth.md | {
+        run $BATS_TEST_DIRNAME/../gh-md-toc --depth 1 -
+        assert_success
+
+        assert_equal "${lines[0]}"   "* [Title one](#title-one)"
+        assert_equal "${lines[1]}"   "* [Title two](#title-two)"
+        assert_equal "${#lines[@]}"  "2"
+    }
+}
+
+@test "TOC as ordered list for local file, #26" {
+    run $BATS_TEST_DIRNAME/../gh-md-toc --numbered list tests/test\ directory/test_numbered.md
+    assert_success
+
+    assert_equal "${lines[2]}"   "1. [Title one](#title-one)"
+    assert_equal "${lines[3]}"   "   1. [Section](#section)"
+    assert_equal "${lines[4]}"   "      1. [Subsection](#subsection)"
+    assert_equal "${lines[5]}"   "   1. [Other section](#other-section)"
+    assert_equal "${lines[6]}"   "1. [Title two](#title-two)"
+    assert_equal "${lines[7]}"   "      1. [Skipped](#skipped)"
+    assert_equal "${lines[8]}"   "   1. [After skip](#after-skip)"
+    assert_equal "${lines[9]}"   "<!-- Created by https://github.com/ekalinin/github-markdown-toc -->"
+}
+
+@test "TOC with outline numbers for local file, #26" {
+    run $BATS_TEST_DIRNAME/../gh-md-toc --numbered outline tests/test\ directory/test_numbered.md
+    assert_success
+
+    assert_equal "${lines[2]}"   "* [1. Title one](#title-one)"
+    assert_equal "${lines[3]}"   "   * [1.1. Section](#section)"
+    assert_equal "${lines[4]}"   "      * [1.1.1. Subsection](#subsection)"
+    assert_equal "${lines[5]}"   "   * [1.2. Other section](#other-section)"
+    assert_equal "${lines[6]}"   "* [2. Title two](#title-two)"
+    assert_equal "${lines[7]}"   "      * [2.1. Skipped](#skipped)"
+    assert_equal "${lines[8]}"   "   * [2.2. After skip](#after-skip)"
+    assert_equal "${lines[9]}"   "<!-- Created by https://github.com/ekalinin/github-markdown-toc -->"
+}
+
+@test "TOC with outline numbers and depth for markdown from stdin, #26" {
+    cat tests/test\ directory/test_numbered.md | {
+        run $BATS_TEST_DIRNAME/../gh-md-toc --depth 2 --numbered outline -
+        assert_success
+
+        assert_equal "${lines[0]}"   "* [1. Title one](#title-one)"
+        assert_equal "${lines[1]}"   "   * [1.1. Section](#section)"
+        assert_equal "${lines[2]}"   "   * [1.2. Other section](#other-section)"
+        assert_equal "${lines[3]}"   "* [2. Title two](#title-two)"
+        assert_equal "${lines[4]}"   "   * [2.1. After skip](#after-skip)"
+        assert_equal "${#lines[@]}"  "5"
+    }
+}
+
+@test "Error for unknown --numbered type, #26" {
+    run $BATS_TEST_DIRNAME/../gh-md-toc --numbered roman README.md
+    assert_fail
+
+    assert_equal "${lines[0]}"   "Unknown type for --numbered: 'roman'. Use 'list' or 'outline'."
+}
+
+@test "Error for --numbered list with indent less than 3, #26" {
+    run $BATS_TEST_DIRNAME/../gh-md-toc --indent 2 --numbered list README.md
+    assert_fail
+
+    assert_equal "${lines[0]}"   "--numbered list requires --indent 3 or more, got '2'."
 }

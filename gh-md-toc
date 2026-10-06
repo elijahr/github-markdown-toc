@@ -52,7 +52,6 @@ gh_toc_load() {
 gh_toc_md2html() {
     local gh_file_md=$1
     local skip_header=$2
-    local status
 
     URL=https://api.github.com/markdown/raw
 
@@ -78,22 +77,29 @@ gh_toc_md2html() {
     fi
 
     # echo $URL 1>&2
+    # append the HTTP status code as the last line of the output, so API
+    # errors are detected by status rather than by the rendered markdown
     OUTPUT=$(curl -s \
         --user-agent "$gh_user_agent" \
         --data-binary @"$gh_tmp_file_md" \
         -H "Content-Type:text/plain" \
         -H "$AUTHORIZATION" \
+        -w '\n%{http_code}' \
         "$URL")
-    status=$?
+    local curl_status=$?
+    local http_code=${OUTPUT##*$'\n'}
+    OUTPUT=${OUTPUT%$'\n'*}
 
     rm -f "${gh_file_md}~~"
 
-    if [ "$status" != "0" ]; then
+    if [ "$curl_status" != "0" ]; then
         echo "XXNetworkErrorXX"
-    elif [ "$(echo "${OUTPUT}" | awk '/API rate limit exceeded/')" != "" ]; then
-        echo "XXRateLimitXX"
-    elif [ "$(echo "${OUTPUT}" | awk '/Bad credentials/')" != "" ]; then
+    elif [ "$http_code" = "401" ]; then
         echo "XXBadCredentialsXX"
+    elif [ "$http_code" != "200" ] && [ "$(echo "${OUTPUT}" | awk '/API rate limit exceeded/')" != "" ]; then
+        echo "XXRateLimitXX"
+    elif [ "$http_code" != "200" ]; then
+        echo "XXApiErrorXX ${http_code}"
     else
         echo "${OUTPUT}"
     fi
@@ -124,6 +130,8 @@ gh_toc(){
     local no_footer=$5
     local indent=$6
     local skip_header=$7
+    local depth=$8
+    local numbered=$9
 
     if [ "$gh_src" = "" ]; then
         echo "Please, enter URL or local path for a README.md"
@@ -142,7 +150,7 @@ gh_toc(){
     fi
 
     if [ "$(gh_is_url "$gh_src")" == "yes" ]; then
-        gh_toc_load "$gh_src" | gh_toc_grab "$gh_src_copy" "$indent"
+        gh_toc_load "$gh_src" | gh_toc_grab "$gh_src_copy" "$indent" "$depth" "$numbered"
         if [ "${PIPESTATUS[0]}" != "0" ]; then
             echo "Could not load remote document."
             echo "Please check your url or network connectivity"
@@ -164,26 +172,26 @@ gh_toc(){
         elif [ "$rawhtml" == "XXRateLimitXX" ]; then
              echo "Parsing local markdown file requires access to github API"
              echo "Error: You exceeded the hourly limit. See: https://developer.github.com/v3/#rate-limiting"
-             if [ -n "$GH_TOC_TOKEN" ]; then
-                echo "Verify correct GitHub auth token in GH_TOC_TOKEN environment variable"
-             else
-                TOKEN_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/token.txt"
-                echo "Verify correct GitHub auth token here: ${TOKEN_FILE}"
-             fi
+             TOKEN_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/token.txt"
+             echo "or place GitHub auth token here: ${TOKEN_FILE}"
              exit 1
         elif [ "$rawhtml" == "XXBadCredentialsXX" ]; then
              echo "Parsing local markdown file requires access to github API"
-             echo "Error: You provided bad credentials. See: https://developer.github.com/v3/#rate-limiting"
+             echo "Error: GitHub API rejected the auth token (HTTP 401 Bad credentials)"
              if [ -n "$GH_TOC_TOKEN" ]; then
-                echo "Verify correct GitHub auth token in GH_TOC_TOKEN environment variable"
+                 echo "Check the GitHub auth token in the GH_TOC_TOKEN environment variable"
              else
-                TOKEN_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/token.txt"
-                echo "Verify correct GitHub auth token here: ${TOKEN_FILE}"
+                 TOKEN_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/token.txt"
+                 echo "Check the GitHub auth token here: ${TOKEN_FILE}"
              fi
+             exit 1
+        elif [[ "$rawhtml" == "XXApiErrorXX "* ]]; then
+             echo "Parsing local markdown file requires access to github API"
+             echo "Error: GitHub API request failed (HTTP ${rawhtml#XXApiErrorXX })"
              exit 1
         fi
         local toc
-        toc=`echo "$rawhtml" | gh_toc_grab "$gh_src_copy" "$indent"`
+        toc=$(echo "$rawhtml" | gh_toc_grab "$gh_src_copy" "$indent" "$depth" "$numbered")
         echo "$toc"
         if [ "$need_replace" = "yes" ]; then
             if grep -Fxq "<!--ts-->" "$gh_src" && grep -Fxq "<!--te-->" "$gh_src"; then
@@ -200,7 +208,7 @@ gh_toc(){
             local toc_path="${gh_src}.toc.${dt}"
             local toc_createdby="<!-- Created by https://github.com/ekalinin/github-markdown-toc -->"
             local toc_footer
-            toc_footer="<!-- Added by: `whoami`, at: `date` -->"
+            toc_footer="<!-- Added by: $(whoami), at: $(date) -->"
             # http://fahdshariff.blogspot.ru/2012/12/sed-mutli-line-replacement-between-two.html
             # clear old TOC
             sed -i"${ext}" "/${ts}/,/${te}/{//!d;}" "$gh_src"
@@ -236,11 +244,21 @@ gh_toc(){
 # $1 - a source url of document.
 #      It's need if TOC is generated for multiple documents.
 # $2 - number of spaces used to indent.
+# $3 - max heading level to include. 0 means all levels.
+# $4 - numbering type: "list", "outline" or empty for bullets.
 #
 gh_toc_grab() {
 
     href_regex="/href=\"[^\"]+?\"/"
     common_awk_script='
+                     if (depth+0 > 0 && level+0 > depth+0) next
+                     # outline number: pop the entries down to the parent,
+                     # the last popped one is the previous sibling
+                     prev = 0
+                     while (top > 0 && lvls[top] >= level+0) { prev = nums[top]; top-- }
+                     top++; lvls[top] = level+0; nums[top] = prev + 1
+                     num = ""
+                     for (k = 1; k <= top; k++) num = num nums[k] "."
                      modified_href = ""
                      split(href, chars, "")
                      for (i=1;i <= length(href); i++) {
@@ -257,11 +275,16 @@ gh_toc_grab() {
                          }
                          modified_href = modified_href res
                     }
-                    print sprintf("%*s", (level-1)*'"$2"', "") "* [" text "](" gh_url  modified_href ")"
+                    marker = "* "
+                    prefix = ""
+                    if (numbered == "list") marker = "1. "
+                    if (numbered == "outline") prefix = num " "
+                    print sprintf("%*s", (level-1)*'"$2"', "") marker "[" prefix text "](" gh_url  modified_href ")"
                     '
-    if [ "`uname -s`" == "OS/390" ]; then
+    if [ "$(uname -s)" == "OS/390" ]; then
         grepcmd="pcregrep -o"
         echoargs=""
+        # shellcheck disable=SC2016
         awkscript='{
                      level = substr($0, 3, 1)
                      text = substr($0, match($0, /<\/span><\/a>[^<]*<\/h/)+11, RLENGTH-14)
@@ -271,6 +294,7 @@ gh_toc_grab() {
     else
         grepcmd="grep -Eo"
         echoargs="-e"
+        # shellcheck disable=SC2016
         awkscript='{
                      level = substr($0, 3, 1)
                      text = substr($0, match($0, /">.*<\/h/)+2, RLENGTH-5)
@@ -290,7 +314,7 @@ gh_toc_grab() {
     sed -e ':a' -e 'N' -e '$!ba' -e 's/\n<span/<span/g' |
 
     # find strings that corresponds to template
-    $grepcmd '<h.*class="heading-element".*</a' |
+    $grepcmd '<h[1-6][^>]*class="heading-element".*</a' |
 
     # remove code tags
     sed 's/<code>//g' | sed 's/<\/code>//g' |
@@ -303,7 +327,7 @@ gh_toc_grab() {
     # format result line
     #   * $0 - whole string
     #   * last element of each row: "</hN" where N in (1,2,3,...)
-    echo $echoargs "$(awk -v "gh_url=$1" "$awkscript")"
+    echo $echoargs "$(awk -v "gh_url=$1" -v "depth=$3" -v "numbered=$4" "$awkscript")"
 }
 
         # perl -lpE 's/(\[[^\]]*\]\()(.*?)(\))/my ($pre, $in, $post)=($1, $2, $3) ; $in =~ s{\+}{ }g; $in =~ s{%}{\\x}g; $pre.$in.$post/ems')"
@@ -318,10 +342,10 @@ gh_toc_get_filename() {
 show_version() {
     echo "$gh_toc_version"
     echo
-    echo "os:     `uname -s`"
-    echo "arch:   `uname -m`"
-    echo "kernel: `uname -r`"
-    echo "shell:  `$SHELL --version`"
+    echo "os:     $(uname -s)"
+    echo "arch:   $(uname -m)"
+    echo "kernel: $(uname -r)"
+    echo "shell:  $($SHELL --version)"
     echo
     for tool in curl wget grep awk sed; do
         printf "%-5s: " $tool
@@ -346,6 +370,8 @@ show_help() {
     echo ""
     echo "Options:"
     echo "  --indent <NUM>      Set indent size. Default: 3."
+    echo "  --depth <NUM>       Max heading level to include into TOC. Default: 0 (all levels)."
+    echo "  --numbered <TYPE>   Number TOC entries: list (ordered list) or outline (1.1. in text). Default: none."
     echo "  --insert            Insert new TOC into original file. For local files only. Default: false."
     echo "                      See https://github.com/ekalinin/github-markdown-toc/issues/41 for details."
     echo "  --no-backup         Remove backup file. Set --insert as well. Default: false."
@@ -361,6 +387,8 @@ show_help() {
 gh_toc_app() {
     local need_replace="no"
     local indent=3
+    local depth=0
+    local numbered=""
 
     if [ "$1" = '--help' ] || [ $# -eq 0 ] ; then
         show_help
@@ -377,6 +405,28 @@ gh_toc_app() {
         shift 2
     fi
 
+    if [ "$1" = '--depth' ]; then
+        depth="$2"
+        shift 2
+    fi
+
+    if [ "$1" = '--numbered' ]; then
+        numbered="$2"
+        shift 2
+    fi
+
+    case $numbered in
+        "" | list | outline) ;;
+        *)
+            echo "Unknown type for --numbered: '$numbered'. Use 'list' or 'outline'."
+            exit 1;;
+    esac
+
+    if [ "$numbered" = "list" ] && [ "$indent" -lt 3 ] 2>/dev/null; then
+        echo "--numbered list requires --indent 3 or more, got '$indent'."
+        exit 1
+    fi
+
     if [ "$1" = "-" ]; then
         if [ -z "$TMPDIR" ]; then
             TMPDIR="/tmp"
@@ -384,7 +434,7 @@ gh_toc_app() {
             mkdir -p "$TMPDIR"
         fi
         local gh_tmp_md
-        if [ "`uname -s`" == "OS/390" ]; then
+        if [ "$(uname -s)" == "OS/390" ]; then
             local timestamp
             timestamp=$(date +%m%d%Y%H%M%S)
             gh_tmp_md="$TMPDIR/tmp.$timestamp"
@@ -394,7 +444,7 @@ gh_toc_app() {
         while read -r input; do
             echo "$input" >> "$gh_tmp_md"
         done
-        gh_toc_md2html "$gh_tmp_md" | gh_toc_grab "" "$indent"
+        gh_toc_md2html "$gh_tmp_md" | gh_toc_grab "" "$indent" "$depth" "$numbered"
         return
     fi
 
@@ -424,7 +474,7 @@ gh_toc_app() {
     for md in "$@"
     do
         echo ""
-        gh_toc "$md" "$#" "$need_replace" "$no_backup" "$no_footer" "$indent" "$skip_header"
+        gh_toc "$md" "$#" "$need_replace" "$no_backup" "$no_footer" "$indent" "$skip_header" "$depth" "$numbered"
     done
 
     echo ""
